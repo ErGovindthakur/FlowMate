@@ -3,4 +3,5 @@ export interface CreateLeadInput {
   website: string;
   email: string;
   industry?: string;
+  notes?: string;
 }
