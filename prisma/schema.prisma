@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Lead {
+  id            String   @id @default(cuid())
+
+  companyName   String
+  website       String
+  email         String
+  industry      String?
+
+  scrapedData   Json?
+  aiInsights    Json?
+
+  pdfPath       String?
+
+  status        LeadStatus @default(PENDING)
+
+  retryCount    Int @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  automationLogs AutomationLog[]
+  emailLogs      EmailLog[]
+}
+
+model AutomationLog {
+  id          String   @id @default(cuid())
+
+  leadId      String
+  lead        Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  step        AutomationStep
+  status      LogStatus
+
+  message     String?
+
+  createdAt   DateTime @default(now())
+}
+
+model EmailLog {
+  id          String   @id @default(cuid())
+
+  leadId      String
+  lead        Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  recipient   String
+  subject     String
+
+  status      EmailStatus
+
+  error       String?
+
+  sentAt      DateTime @default(now())
+}
+
+enum LeadStatus {
+  PENDING
+  SCRAPING
+  GENERATING_INSIGHTS
+  GENERATING_PDF
+  SENDING_EMAIL
+  COMPLETED
+  FAILED
+}
+
+enum AutomationStep {
+  SCRAPING
+  AI_INSIGHTS
+  PDF_GENERATION
+  EMAIL_SENDING
+}
+
+enum LogStatus {
+  SUCCESS
+  FAILED
+  IN_PROGRESS
+}
+
+enum EmailStatus {
+  SENT
+  FAILED
+}
