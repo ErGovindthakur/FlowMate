@@ -5,4 +5,5 @@ export const createLeadSchema = z.object({
   website: z.string().url(),
   email: z.string().email(),
   industry: z.string().optional(),
+  notes: z.string().optional(),
 });

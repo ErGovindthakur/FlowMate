@@ -14,6 +14,8 @@ model Lead {
   email         String
   industry      String?
 
+  notes String?
+  
   scrapedData   Json?
   aiInsights    Json?
 
