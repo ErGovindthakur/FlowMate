@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import axios from "axios"
+import axios from "axios";
 import { createLeadSchema } from "@/modules/lead/lead.schema";
 
 import { z } from "zod";
@@ -22,7 +22,7 @@ export default function LeadForm() {
 
   async function onSubmit(data: FormData) {
   try {
-    const response = await axios.post("/api/leads", data);
+    const response = await axios.post("/api/automate", data);
 
     const result = response.data;
 

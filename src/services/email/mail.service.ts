@@ -35,30 +35,27 @@ export async function sendMail(
 
     if (attachmentPath) {
 
-      // Create absolute safe path
-      const fullPath = path.join(
-        process.cwd(),
-        attachmentPath
-      );
+  // Use direct absolute path
+  const fullPath = attachmentPath;
 
-      // Check file exists
-      if (!fs.existsSync(fullPath)) {
-        throw new Error(
-          `File not found: ${fullPath}`
-        );
-      }
+  // Check file exists
+  if (!fs.existsSync(fullPath)) {
+    throw new Error(
+      `File not found: ${fullPath}`
+    );
+  }
 
-      attachments = [
-        {
-          filename:
-            attachmentName || "report.pdf",
+  attachments = [
+    {
+      filename:
+        attachmentName || "report.pdf",
 
-          content: fs
-            .readFileSync(fullPath)
-            .toString("base64"),
-        },
-      ];
-    }
+      content: fs
+        .readFileSync(fullPath)
+        .toString("base64"),
+    },
+  ];
+}
 
     const info = await resend.emails.send({
       from:
