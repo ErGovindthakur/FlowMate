@@ -5,6 +5,7 @@ import {
   normalizeUrl,
   cleanWebsiteContent,
 } from "@/lib/url";
+import { AppError } from "@/lib/errors";
 
 interface ScrapedData {
   title: string;
@@ -25,7 +26,7 @@ export async function scrapeWebsite(
 
     // Fetch website HTML
     const { data } = await axios.get(url, {
-      timeout: 10000,
+      timeout: 30000,
 
       headers: {
         "User-Agent": "Mozilla/5.0 AI Automation Bot",
@@ -93,8 +94,48 @@ export async function scrapeWebsite(
       cleanContent,
     };
   } catch (error) {
-    console.error("Scraping error:", error);
 
-    throw new Error("Failed to scrape website");
+  console.error("Scraping error:", error);
+
+  if (axios.isAxiosError(error)) {
+
+    // Timeout
+    if (error.code === "ECONNABORTED") {
+
+      throw new AppError(
+        "Website request timed out",
+        408
+      );
+    }
+
+    // Blocked / Forbidden
+    if (error.response?.status === 403) {
+
+      throw new AppError(
+        "Website blocked scraping access",
+        403
+      );
+    }
+
+    // Website not found
+    if (error.response?.status === 404) {
+
+      throw new AppError(
+        "Website not found",
+        404
+      );
+    }
+
+    // Generic axios failure
+    throw new AppError(
+      "Failed to connect to website",
+      500
+    );
   }
+
+  throw new AppError(
+    "Failed to scrape website",
+    500
+  );
+}
 }

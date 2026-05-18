@@ -1,5 +1,6 @@
 import fs from "fs";
-// import path from "path";
+
+import path from "path";
 
 import { Resend } from "resend";
 
@@ -7,9 +8,13 @@ import { SendMailInput } from "./mail.types";
 
 import { env } from "@/lib/env";
 
+import { AppError } from "@/lib/errors";
+
 import { createEmailLog } from "@/modules/email/email.repository";
 
-const resend = new Resend(env.RESEND_API_KEY);
+const resend = new Resend(
+  env.RESEND_API_KEY
+);
 
 export async function sendMail(
   data: SendMailInput
@@ -26,76 +31,119 @@ export async function sendMail(
 
   try {
 
-    let attachments:
-      | {
-          filename: string;
-          content: string;
-        }[]
-      = [];
+    const attachments: {
+      filename: string;
+      content: string;
+    }[] = [];
 
     if (attachmentPath) {
 
-  // Use direct absolute path
-  const fullPath = attachmentPath;
+      const safePath =
+        path.resolve(
+          attachmentPath
+        );
 
-  // Check file exists
-  if (!fs.existsSync(fullPath)) {
-    throw new Error(
-      `File not found: ${fullPath}`
-    );
-  }
+      if (
+        !fs.existsSync(safePath)
+      ) {
 
-  attachments = [
-    {
-      filename:
-        attachmentName || "report.pdf",
+        throw new AppError(
+          "Attachment file not found",
+          404
+        );
+      }
 
-      content: fs
-        .readFileSync(fullPath)
-        .toString("base64"),
-    },
-  ];
-}
+      const fileBuffer =
+        fs.readFileSync(
+          safePath
+        );
 
-    const info = await resend.emails.send({
-      from:
-        "AI Automation System <onboarding@resend.dev>",
+      if (!fileBuffer.length) {
 
-      to,
+        throw new AppError(
+          "Attachment file is empty",
+          400
+        );
+      }
 
-      subject,
+      attachments.push({
+        filename:
+          attachmentName ||
+          "report.pdf",
 
-      html,
+        content:
+          fileBuffer.toString(
+            "base64"
+          ),
+      });
+    }
 
-      attachments,
-    });
+    const info =
+      await resend.emails.send({
+        from:
+          "AI Automation System <onboarding@resend.dev>",
+
+        to,
+
+        subject,
+
+        html,
+
+        attachments,
+      });
+
+    if (info.error) {
+
+      throw new AppError(
+        info.error.message ||
+          "Email sending failed",
+        500
+      );
+    }
 
     await createEmailLog({
       leadId,
+
       recipient: to,
+
       subject,
+
       status: "SENT",
     });
 
     return info;
 
-  } catch (error: unknown) {
+  } catch (error) {
 
-    console.error("Mail error:", error);
+    console.error(
+      "Mail error:",
+      error
+    );
 
     const errorMessage =
       error instanceof Error
         ? error.message
-        : "Unknown error";
+        : "Unknown email error";
 
     await createEmailLog({
       leadId,
+
       recipient: to,
+
       subject,
+
       status: "FAILED",
+
       error: errorMessage,
     });
 
-    throw new Error(errorMessage);
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw new AppError(
+      errorMessage,
+      500
+    );
   }
 }

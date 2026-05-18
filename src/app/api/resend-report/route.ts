@@ -1,36 +1,57 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+
+import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+
+import { AppError } from "@/lib/errors";
+
+import {
+  successResponse,
+} from "@/lib/api-response";
+
+import { handleError } from "@/lib/handle-error";
 
 import { sendMail } from "@/services/email/mail.service";
 
 import { generateReportEmailTemplate } from "@/services/email/mail.templates";
 
+const resendReportSchema =
+  z.object({
+    leadId: z.string().min(1),
+  });
+
 export async function POST(
   req: NextRequest
-) {
+): Promise<Response> {
 
   try {
 
-    const body =
-      await req.json();
+    const body = await req.json();
+
+    const validatedData =
+      resendReportSchema.parse(body);
 
     const lead =
       await prisma.lead.findUnique({
         where: {
-          id: body.leadId,
+          id: validatedData.leadId,
         },
       });
 
     if (!lead) {
-      throw new Error(
-        "Lead not found"
+
+      throw new AppError(
+        "Lead not found",
+        404
       );
     }
 
     if (!lead.pdfPath) {
-      throw new Error(
-        "PDF not found"
+
+      throw new AppError(
+        "PDF report not found",
+        404
       );
     }
 
@@ -54,25 +75,14 @@ export async function POST(
         "AI_Report.pdf",
     });
 
-    return NextResponse.json({
-      success: true,
-    });
-
-  } catch (error: unknown) {
-
-    return NextResponse.json(
-      {
-        success: false,
-
-        message:
-          error instanceof Error
-            ? error.message
-            : "Resend failed",
-      },
-
-      {
-        status: 500,
-      }
+    return successResponse(
+      null,
+      "Report resent successfully"
     );
+
+  } catch (error) {
+
+    return handleError(error);
+
   }
 }

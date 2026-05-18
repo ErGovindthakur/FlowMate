@@ -1,26 +1,45 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+
+import { z } from "zod";
 
 import { generateAIInsights } from "@/services/ai/groq.service";
 
-export async function POST(req: NextRequest) {
+import {
+  successResponse,
+} from "@/lib/api-response";
+
+import { handleError } from "@/lib/handle-error";
+
+const generateInsightsSchema = z.object({
+  websiteContent: z
+    .string()
+    .min(20, "Website content is too short"),
+});
+
+export async function POST(
+  req: NextRequest
+): Promise<Response> {
+
   try {
+
     const body = await req.json();
 
-    const insights = await generateAIInsights(
-      body.websiteContent
+    const validatedData =
+      generateInsightsSchema.parse(body);
+
+    const insights =
+      await generateAIInsights(
+        validatedData.websiteContent
+      );
+
+    return successResponse(
+      insights,
+      "AI insights generated successfully"
     );
 
-    return NextResponse.json({
-      success: true,
-      data: insights,
-    });
-  } catch (error: any) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error) {
+
+    return handleError(error);
+
   }
 }

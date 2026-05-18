@@ -33,6 +33,7 @@ export async function runAutomation(lead: {
     await saveScrapedData(lead.id, scrapedData);
 
     await createAutomationLog(lead.id, "SCRAPING", "SUCCESS");
+    // await createAutomationLog(lead.id, "SCRAPING", "FAILED");
     await updateLeadStatus(lead.id, "GENERATING_INSIGHTS");
 
     await createAutomationLog(lead.id, "AI_INSIGHTS", "IN_PROGRESS");

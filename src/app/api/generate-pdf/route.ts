@@ -1,30 +1,66 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+
+import { z } from "zod";
 
 import { generatePDF } from "@/services/pdf/pdf.service";
 
-export async function POST(req: NextRequest) {
+import {
+  successResponse,
+} from "@/lib/api-response";
+
+import { handleError } from "@/lib/handle-error";
+
+const generatePDFSchema = z.object({
+  companyName: z.string(),
+  website: z.string(),
+  email: z.string().email(),
+
+  insights: z.object({
+    companyOverview: z.string(),
+
+    strengths: z.array(z.string()),
+
+    weaknesses: z.array(z.string()),
+
+    growthOpportunities: z.array(
+      z.string()
+    ),
+
+    automationSuggestions:
+      z.array(z.string()),
+
+    marketingSuggestions:
+      z.array(z.string()),
+
+    seoImprovements:
+      z.array(z.string()),
+  }),
+});
+
+export async function POST(
+  req: NextRequest
+): Promise<Response> {
+
   try {
+
     const body = await req.json();
 
-    const pdfPath = await generatePDF(body);
+    const validatedData =
+      generatePDFSchema.parse(body);
 
-    return NextResponse.json(
-      {
-        success: true,
-        pdfPath,
-      },
-      { status: 200 },
-    );
-  } catch (error: any) {
-    console.error("PDF Route Error:", error);
+    const pdfPath =
+      await generatePDF(
+        validatedData
+      );
 
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error.message || "Failed to generate PDF",
-      },
-      { status: 500 },
+    return successResponse(
+      { pdfPath },
+      "PDF generated successfully"
     );
+
+  } catch (error) {
+
+    return handleError(error);
+
   }
 }
