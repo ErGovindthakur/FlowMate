@@ -38,60 +38,97 @@ export default function LeadForm() {
 
   const [currentStep, setCurrentStep] = useState("");
   const router = useRouter();
+  // async function onSubmit(data: FormData) {
+  //   try {
+  //     setCurrentStep("Scraping company website...");
+
+  //     await new Promise((resolve) =>
+  //       setTimeout(resolve, 800)
+  //     );
+
+  //     setCurrentStep("Generating AI insights...");
+
+  //     await new Promise((resolve) =>
+  //       setTimeout(resolve, 800)
+  //     );
+
+  //     setCurrentStep("Building executive PDF report...");
+
+  //     await new Promise((resolve) =>
+  //       setTimeout(resolve, 800)
+  //     );
+
+  //     setCurrentStep("Sending automation email...");
+
+  //     const response = await axios.post(
+  //       "/api/automate",
+  //       data
+  //     );
+
+  //     const result = response.data;
+
+  //     if (!result.success) {
+  //       throw new Error(result.message);
+  //     }
+
+  //     toast.success(
+  //       "AI report generated successfully"
+  //     );
+
+  //     reset();
+
+  //     setCurrentStep("");
+  //     router.push("/dashboard");
+  //   } catch (error: any) {
+  //     setCurrentStep("");
+
+  //     toast.error(
+  //       error.message || "Something went wrong"
+  //     );
+  //   }
+  // }
+
   async function onSubmit(data: FormData) {
     try {
       setCurrentStep("Scraping company website...");
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, 800)
-      );
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       setCurrentStep("Generating AI insights...");
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, 800)
-      );
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       setCurrentStep("Building executive PDF report...");
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, 800)
-      );
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       setCurrentStep("Sending automation email...");
 
-      const response = await axios.post(
-        "/api/automate",
-        data
-      );
+      const response = await axios.post("/api/automate", data);
 
-      const result = response.data;
+      toast.success(response.data.message);
 
-      if (!result.success) {
-        throw new Error(result.message);
+      reset();
+
+      setCurrentStep("");
+
+      router.push("/dashboard");
+    } catch (error: unknown) {
+      setCurrentStep("");
+
+      let errorMessage = "Something went wrong";
+
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
 
-      toast.success(
-        "AI report generated successfully"
-      );
-
-      
-      reset();
-      
-      setCurrentStep("");
-      router.push("/dashboard");
-    } catch (error: any) {
-      setCurrentStep("");
-
-      toast.error(
-        error.message || "Something went wrong"
-      );
+      toast.error(errorMessage);
     }
   }
-
   return (
     <div className="relative overflow-hidden rounded-[36px] border border-white/10 bg-white/[0.03] p-10 shadow-[0_0_80px_rgba(139,92,246,0.15)] backdrop-blur-2xl">
-
       {/* Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.15),transparent_35%)]" />
 
@@ -99,38 +136,28 @@ export default function LeadForm() {
       <div className="absolute inset-0 rounded-[36px] border border-white/10" />
 
       <div className="relative z-10">
-
         {/* Badge */}
         <div className="mb-6 flex justify-center">
-
           <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-5 py-2 text-sm font-medium text-violet-300 backdrop-blur-xl">
             <Sparkles className="h-4 w-4" />
             AI Automation Engine
           </div>
-
         </div>
 
         {/* Heading */}
         <div className="mb-12 text-center">
-
           <h1 className="bg-gradient-to-b from-white to-white/70 bg-clip-text text-5xl font-semibold tracking-tight text-transparent">
             AI Business Intelligence
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/50">
-            Analyze companies, generate AI insights,
-            build executive PDF reports, and automate
-            business outreach with AI-powered workflows.
+            Analyze companies, generate AI insights, build executive PDF
+            reports, and automate business outreach with AI-powered workflows.
           </p>
-
         </div>
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6"
-        >
-
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Company */}
           <div>
             <label className="mb-3 flex items-center gap-2 text-sm font-medium text-white/80">
@@ -209,11 +236,9 @@ export default function LeadForm() {
           {/* Status */}
           {currentStep && (
             <div className="flex items-center gap-3 rounded-2xl border border-violet-500/20 bg-violet-500/10 px-5 py-4 text-sm font-medium text-violet-200 backdrop-blur-xl">
-
               <Loader2 className="h-4 w-4 animate-spin" />
 
               {currentStep}
-
             </div>
           )}
 
@@ -222,11 +247,9 @@ export default function LeadForm() {
             disabled={isSubmitting}
             className="group relative flex w-full items-center justify-center overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-r from-violet-600 to-indigo-500 px-5 py-4 text-sm font-semibold text-white shadow-[0_0_40px_rgba(139,92,246,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(139,92,246,0.55)] disabled:cursor-not-allowed disabled:opacity-50"
           >
-
             <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-white/10" />
 
             <div className="relative flex items-center gap-2">
-
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -238,13 +261,11 @@ export default function LeadForm() {
                   Generate AI Report
                 </>
               )}
-
             </div>
           </button>
 
           {/* Trust Indicators */}
           <div className="grid grid-cols-1 gap-4 pt-6 text-sm text-white/50 sm:grid-cols-3">
-
             <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3">
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
               AI Insights
@@ -259,9 +280,7 @@ export default function LeadForm() {
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
               Email Automation
             </div>
-
           </div>
-
         </form>
       </div>
     </div>

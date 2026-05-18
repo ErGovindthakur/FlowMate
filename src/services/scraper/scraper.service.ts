@@ -1,10 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-
-import {
-  normalizeUrl,
-  cleanWebsiteContent,
-} from "@/lib/url";
+import { isSafeUrl } from "@/lib/security";
+import { normalizeUrl, cleanWebsiteContent } from "@/lib/url";
 import { AppError } from "@/lib/errors";
 
 interface ScrapedData {
@@ -17,17 +14,18 @@ interface ScrapedData {
   cleanContent: string;
 }
 
-export async function scrapeWebsite(
-  url: string,
-): Promise<ScrapedData> {
+export async function scrapeWebsite(url: string): Promise<ScrapedData> {
   try {
     // Normalize URL
     url = normalizeUrl(url);
 
+    if (!isSafeUrl(url)) {
+      throw new AppError("Unsafe URL detected", 400);
+    }
     // Fetch website HTML
     const { data } = await axios.get(url, {
       timeout: 30000,
-
+      maxRedirects: 3,
       headers: {
         "User-Agent": "Mozilla/5.0 AI Automation Bot",
       },
@@ -45,8 +43,7 @@ export async function scrapeWebsite(
     const title = $("title").text().trim();
 
     // Extract meta description
-    const metaDescription =
-      $('meta[name="description"]').attr("content") || "";
+    const metaDescription = $('meta[name="description"]').attr("content") || "";
 
     // Extract headings
     const headings = $("h1, h2, h3")
@@ -79,10 +76,7 @@ export async function scrapeWebsite(
     );
 
     // Generate cleaned content
-    const cleanContent = cleanWebsiteContent(
-      headings,
-      paragraphs,
-    );
+    const cleanContent = cleanWebsiteContent(headings, paragraphs);
 
     return {
       title,
@@ -94,48 +88,28 @@ export async function scrapeWebsite(
       cleanContent,
     };
   } catch (error) {
+    console.error("Scraping error:", error);
 
-  console.error("Scraping error:", error);
+    if (axios.isAxiosError(error)) {
+      // Timeout
+      if (error.code === "ECONNABORTED") {
+        throw new AppError("Website request timed out", 408);
+      }
 
-  if (axios.isAxiosError(error)) {
+      // Blocked / Forbidden
+      if (error.response?.status === 403) {
+        throw new AppError("Website blocked scraping access", 403);
+      }
 
-    // Timeout
-    if (error.code === "ECONNABORTED") {
+      // Website not found
+      if (error.response?.status === 404) {
+        throw new AppError("Website not found", 404);
+      }
 
-      throw new AppError(
-        "Website request timed out",
-        408
-      );
+      // Generic axios failure
+      throw new AppError("Failed to connect to website", 500);
     }
 
-    // Blocked / Forbidden
-    if (error.response?.status === 403) {
-
-      throw new AppError(
-        "Website blocked scraping access",
-        403
-      );
-    }
-
-    // Website not found
-    if (error.response?.status === 404) {
-
-      throw new AppError(
-        "Website not found",
-        404
-      );
-    }
-
-    // Generic axios failure
-    throw new AppError(
-      "Failed to connect to website",
-      500
-    );
+    throw new AppError("Failed to scrape website", 500);
   }
-
-  throw new AppError(
-    "Failed to scrape website",
-    500
-  );
-}
 }

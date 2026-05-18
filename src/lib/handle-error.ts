@@ -10,8 +10,18 @@ export function handleError(
 
   console.error(error);
 
-  // Custom App Error
+  // Custom application errors
   if (error instanceof AppError) {
+
+    if (
+      error.statusCode === 403
+    ) {
+
+      return errorResponse(
+        "This website blocks automated scraping requests.",
+        403
+      );
+    }
 
     return errorResponse(
       error.message,
@@ -19,7 +29,7 @@ export function handleError(
     );
   }
 
-  // Zod Validation Error
+  // Validation errors
   if (error instanceof ZodError) {
 
     const firstError =
@@ -32,18 +42,9 @@ export function handleError(
     );
   }
 
-  // Generic Error
-  if (error instanceof Error) {
-
-    return errorResponse(
-      error.message,
-      500
-    );
-  }
-
-  // Unknown Error
+  // Unknown/internal errors
   return errorResponse(
-    "Internal Server Error",
-    500
-  );
+  "Something unexpected happened. Please try again later.",
+  500
+);
 }
