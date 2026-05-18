@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import {
   Building2,
   Globe,
@@ -37,7 +37,7 @@ export default function LeadForm() {
   });
 
   const [currentStep, setCurrentStep] = useState("");
-
+  const router = useRouter();
   async function onSubmit(data: FormData) {
     try {
       setCurrentStep("Scraping company website...");
@@ -75,9 +75,11 @@ export default function LeadForm() {
         "AI report generated successfully"
       );
 
+      
       reset();
-
+      
       setCurrentStep("");
+      router.push("/dashboard");
     } catch (error: any) {
       setCurrentStep("");
 
