@@ -1,74 +1,71 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+
+import { z } from "zod";
 
 import { sendMail } from "@/services/email/mail.service";
 
 import { generateReportEmailTemplate } from "@/services/email/mail.templates";
 
+import {
+  successResponse,
+} from "@/lib/api-response";
+
+import { handleError } from "@/lib/handle-error";
+
+const sendEmailSchema =
+  z.object({
+    leadId: z.string().min(1),
+
+    to: z
+      .string()
+      .email("Invalid email address"),
+
+    companyName: z.string().min(1),
+
+    attachmentPath:
+      z.string().optional(),
+  });
+
 export async function POST(
   req: NextRequest
-) {
+): Promise<Response> {
 
   try {
 
     const body = await req.json();
 
-    // Validation
-    if (
-      !body.leadId ||
-      !body.to ||
-      !body.companyName
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Missing required fields",
-        },
-        { status: 400 }
-      );
-    }
+    const validatedData =
+      sendEmailSchema.parse(body);
 
     await sendMail({
-      leadId: body.leadId,
+      leadId:
+        validatedData.leadId,
 
-      to: body.to,
+      to: validatedData.to,
 
       subject:
         "Your AI Business Intelligence Report",
 
       html:
         generateReportEmailTemplate(
-          body.companyName
+          validatedData.companyName
         ),
 
       attachmentPath:
-        body.attachmentPath,
+        validatedData.attachmentPath,
 
       attachmentName:
         "AI_Report.pdf",
     });
 
-    return NextResponse.json({
-      success: true,
-      message:
-        "Email sent successfully",
-    });
-
-  } catch (error: unknown) {
-
-    console.error(error);
-
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Unknown error";
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: errorMessage,
-      },
-      { status: 500 }
+    return successResponse(
+      null,
+      "Email sent successfully"
     );
+
+  } catch (error) {
+
+    return handleError(error);
+
   }
 }

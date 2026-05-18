@@ -1,40 +1,45 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+
+import { z } from "zod";
 
 import { scrapeWebsite } from "@/services/scraper/scraper.service";
 
-export async function POST(req: NextRequest) {
+import {
+  successResponse,
+} from "@/lib/api-response";
+
+import { handleError } from "@/lib/handle-error";
+
+const scrapeSchema = z.object({
+  url: z
+    .string()
+    .url("Invalid website URL"),
+});
+
+export async function POST(
+  req: NextRequest
+): Promise<Response> {
+
   try {
+
     const body = await req.json();
 
-    // Validate input
-    if (!body.url) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "URL is required",
-        },
-        { status: 400 },
+    const validatedData =
+      scrapeSchema.parse(body);
+
+    const result =
+      await scrapeWebsite(
+        validatedData.url
       );
-    }
 
-    const result = await scrapeWebsite(body.url);
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: result,
-      },
-      { status: 200 },
+    return successResponse(
+      result,
+      "Website scraped successfully"
     );
-  } catch (error: any) {
-    console.error("Scrape API Error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: error.message || "Something went wrong",
-      },
-      { status: 500 },
-    );
+  } catch (error) {
+
+    return handleError(error);
+
   }
 }

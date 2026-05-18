@@ -1,13 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-
-import { createLeadController } from "@/modules/lead/lead.controller";
+import { NextRequest } from "next/server";
 
 import { createLeadSchema } from "@/modules/lead/lead.schema";
 
+import { createLeadController } from "@/modules/lead/lead.controller";
+
 import { automateLeadController } from "@/modules/automation/automation.controller";
 
-export async function POST(req: NextRequest) {
+import {
+  successResponse,
+} from "@/lib/api-response";
+
+import { handleError } from "@/lib/handle-error";
+
+export async function POST(
+  req: NextRequest
+) {
   try {
+
     const body = await req.json();
 
     const validatedData =
@@ -18,32 +27,18 @@ export async function POST(req: NextRequest) {
         validatedData
       );
 
-    await automateLeadController(lead);
-
-    return NextResponse.json({
-      success: true,
-
-      message:
-        "Automation completed successfully",
-    });
-
-  } catch (error: unknown) {
-
-    console.error(error);
-
-    return NextResponse.json(
-      {
-        success: false,
-
-        message:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong",
-      },
-
-      {
-        status: 500,
-      }
+    await automateLeadController(
+      lead
     );
+
+    return successResponse(
+      lead,
+      "Automation completed successfully"
+    );
+
+  } catch (error) {
+
+    return handleError(error);
+
   }
 }

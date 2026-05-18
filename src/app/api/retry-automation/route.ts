@@ -1,28 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+
+import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 
+import { AppError } from "@/lib/errors";
+
+import {
+  successResponse,
+} from "@/lib/api-response";
+
+import { handleError } from "@/lib/handle-error";
+
 import { runAutomation } from "@/modules/automation/automation.service";
+
+const retryAutomationSchema =
+  z.object({
+    leadId: z.string().min(1),
+  });
 
 export async function POST(
   req: NextRequest
-) {
+): Promise<Response> {
 
   try {
 
-    const body =
-      await req.json();
+    const body = await req.json();
+
+    const validatedData =
+      retryAutomationSchema.parse(body);
 
     const lead =
       await prisma.lead.findUnique({
         where: {
-          id: body.leadId,
+          id: validatedData.leadId,
         },
       });
 
     if (!lead) {
-      throw new Error(
-        "Lead not found"
+
+      throw new AppError(
+        "Lead not found",
+        404
       );
     }
 
@@ -32,7 +51,7 @@ export async function POST(
       },
 
       data: {
-        status: "PENDING",
+        status: "SCRAPING",
 
         retryCount: {
           increment: 1,
@@ -51,25 +70,14 @@ export async function POST(
       email: lead.email,
     });
 
-    return NextResponse.json({
-      success: true,
-    });
-
-  } catch (error: unknown) {
-
-    return NextResponse.json(
-      {
-        success: false,
-
-        message:
-          error instanceof Error
-            ? error.message
-            : "Retry failed",
-      },
-
-      {
-        status: 500,
-      }
+    return successResponse(
+      null,
+      "Automation retry started"
     );
+
+  } catch (error) {
+
+    return handleError(error);
+
   }
 }
