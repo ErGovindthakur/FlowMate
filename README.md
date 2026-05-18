@@ -37,6 +37,34 @@ Built with a premium AI SaaS architecture using Next.js, Prisma, PostgreSQL, Tai
 
 ---
 
+
+# Application Preview
+
+## AI Onboarding Experience
+
+Premium first-time onboarding experience with AI workflow guidance.
+
+![AI Onboarding](./public/screenshorts/onboarding.png)
+
+---
+
+## AI Automation Form
+
+Generate AI-powered business intelligence reports with automated workflows.
+
+![Automation Form](./public/screenshorts/automation-form.png)
+
+---
+
+## Business Intelligence Dashboard
+
+Monitor AI workflows, retry failed automations, resend reports, and manage operational workflows from a premium AI dashboard.
+
+![Dashboard](./public/screenshorts/dashboard.png)
+
+---
+
+
 ## Modern Tech Stack
 
 * Next.js 16 App Router
