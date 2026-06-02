@@ -4,6 +4,7 @@ import {
   AutomationStep,
   LeadStatus,
   LogStatus,
+  Prisma
 } from "@prisma/client";
 
 export async function updateLeadStatus(
@@ -31,7 +32,7 @@ export async function saveScrapedData(
     },
 
     data: {
-      scrapedData,
+      scrapedData:scrapedData as Prisma.InputJsonValue,
     },
   });
 }
@@ -46,7 +47,7 @@ export async function saveAIInsights(
     },
 
     data: {
-      aiInsights,
+      aiInsights:aiInsights as Prisma.InputJsonValue,
     },
   });
 }
