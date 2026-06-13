@@ -6,8 +6,4 @@ export interface SendMailInput {
   subject: string;
 
   html: string;
-
-  attachmentPath?: string;
-
-  attachmentName?: string;
 }
