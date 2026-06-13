@@ -85,7 +85,7 @@ export default function LeadTable({ leads }: Props) {
                 <td className="p-5">
                   {lead.pdfPath ? (
                     <Link
-                      href={`/api/download-pdf?path=${lead.pdfPath}`}
+                      href={`${lead.pdfPath}`}
                       className="inline-flex items-center gap-2 rounded-xl border border-cyan-500/10 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-300 transition-all duration-300 hover:bg-cyan-500/20"
                     >
                       <Download className="h-4 w-4" />
@@ -97,6 +97,7 @@ export default function LeadTable({ leads }: Props) {
                     </div>
                   )}
                 </td>
+
 
                 <td className="p-4">
                   <div className="flex gap-2">

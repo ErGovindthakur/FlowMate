@@ -1,4 +1,5 @@
 import { scrapeWebsite } from "@/services/scraper/scraper.service";
+import { uploadPdfToCloudinary } from "@/services/cloudinary/upload-pdf";
 
 import { generateAIInsights } from "@/services/ai/groq.service";
 
@@ -47,7 +48,7 @@ export async function runAutomation(lead: {
 
     await createAutomationLog(lead.id, "PDF_GENERATION", "IN_PROGRESS");
 
-    const pdfPath = await generatePDF({
+    const pdfBuffer = await generatePDF({
       companyName: lead.companyName,
 
       website: lead.website,
@@ -56,6 +57,14 @@ export async function runAutomation(lead: {
 
       insights,
     });
+
+    console.log("PDF Generated...")
+    const uploadResult = await uploadPdfToCloudinary(
+      pdfBuffer,
+      `${lead.companyName.replace(/\s+/g, "_").toLowerCase()}_report`,
+    );
+    console.log("Cloudinary upload success", uploadResult);
+    const pdfPath = uploadResult.secure_url;
 
     await savePDFPath(lead.id, pdfPath);
 
@@ -118,21 +127,26 @@ export async function runAutomation(lead: {
     </ul>
 
     <p>
-      Please find the detailed PDF report attached.
-    </p>
+  Your detailed PDF report is ready.
+</p>
 
-    <br />
+<p>
+  <a
+    href="${pdfPath}"
+    target="_blank"
+  >
+    Download Full PDF Report
+  </a>
+</p>
 
-    <p>
-      — AI Automation System
-    </p>
+<br />
+
+<p>
+  — AI Automation System
+</p>
 
   </div>
 `,
-
-      attachmentPath: pdfPath,
-
-      attachmentName: "AI_Report.pdf",
     });
 
     await createAutomationLog(lead.id, "EMAIL_SENDING", "SUCCESS");

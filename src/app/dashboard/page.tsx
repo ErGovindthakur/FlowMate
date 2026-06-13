@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import LeadTable from "@/components/dashboard/LeadTable";
@@ -12,7 +13,7 @@ export default async function DashboardPage() {
       createdAt: "desc",
     },
   });
-
+  // console.log("DASHBOARD LEADS:", leads);
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
       {/* Background Grid */}

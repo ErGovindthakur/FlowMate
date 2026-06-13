@@ -22,8 +22,7 @@ const sendEmailSchema =
 
     companyName: z.string().min(1),
 
-    attachmentPath:
-      z.string().optional(),
+    pdfPath: z.string().url(),
   });
 
 export async function POST(
@@ -48,14 +47,10 @@ export async function POST(
 
       html:
         generateReportEmailTemplate(
-          validatedData.companyName
+          validatedData.companyName,
+          validatedData.pdfPath
         ),
 
-      attachmentPath:
-        validatedData.attachmentPath,
-
-      attachmentName:
-        "AI_Report.pdf",
     });
 
     return successResponse(

@@ -1,9 +1,10 @@
 export function generateReportEmailTemplate(
-  companyName: string
+  companyName: string,
+  pdfPath: string
 ) {
   return `
     <div style="font-family: Arial, sans-serif; padding: 20px; color: #111827;">
-      
+
       <h1 style="color: #2563EB;">
         AI Business Intelligence Report
       </h1>
@@ -17,7 +18,7 @@ export function generateReportEmailTemplate(
       </p>
 
       <p>
-        The attached PDF includes:
+        The report includes:
       </p>
 
       <ul>
@@ -29,7 +30,24 @@ export function generateReportEmailTemplate(
       </ul>
 
       <p>
-        Please find the report attached with this email.
+        Your report is ready and can be downloaded using the link below:
+      </p>
+
+      <p>
+        <a
+          href="${pdfPath}"
+          target="_blank"
+          style="
+            display:inline-block;
+            padding:12px 20px;
+            background:#2563EB;
+            color:white;
+            text-decoration:none;
+            border-radius:8px;
+          "
+        >
+          Download PDF Report
+        </a>
       </p>
 
       <br />
